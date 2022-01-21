@@ -7,9 +7,13 @@ export default function middleware(request: NextRequest) {
   const url = request.nextUrl
   let response = NextResponse.next()
   if (!excludededPrefixes.find((path) => url.pathname?.startsWith(path))) {
+    const domain = request.headers.get('Host');
     const rewrite = getPersonalizedRewrite(
       url?.pathname!,
-      request.cookies
+      {
+        ...request.cookies,
+        'builder.userAttributes.doman': domain || '',
+      }
     )
     if (rewrite) {
       response = NextResponse.rewrite(rewrite)

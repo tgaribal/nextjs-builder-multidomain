@@ -4,10 +4,11 @@ import { getPersonalizedRewrite } from '@builder.io/personalization-utils'
 const excludededPrefixes = ['/favicon', '/api']
 
 export default function middleware(request: NextRequest) {
-  const url = request.nextUrl
-  let response = NextResponse.next()
+  const url = request.nextUrl;
+  let response = NextResponse.next();
   if (!excludededPrefixes.find((path) => url.pathname?.startsWith(path))) {
-    const domain = request.headers.get('Host');
+    console.log('host: ', request.headers.get('host'))
+    const domain = request.headers.get('host');
     const rewrite = getPersonalizedRewrite(
       url?.pathname!,
       {

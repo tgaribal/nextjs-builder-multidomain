@@ -1,3 +1,5 @@
+
+   
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
@@ -12,18 +14,17 @@ export async function getStaticProps({
   params,
 }: GetStaticPropsContext<{ path: string[] }>) {
   const isPersonalizedRequest = params?.path?.[0].startsWith(';')
+  const urlPath = '/' + (params?.path?.join('/') || '')
+
+  const targeting = isPersonalizedRequest
+    ? getTargetingValues(params!.path[0].split(';').slice(1))
+    : { urlPath }
+
   const page =
     (await builder
       .get('page', {
         apiKey: builderConfig.apiKey,
-        userAttributes: isPersonalizedRequest
-          ? {
-              // if it's a personalized page let's fetch it:
-              ...getTargetingValues(params!.path[0].split(';').slice(1)),
-            }
-          : {
-              urlPath: '/' + (params?.path?.join('/') || ''),
-            },
+        userAttributes: targeting,
         cachebust: true,
       })
       .toPromise()) || null
@@ -31,29 +32,25 @@ export async function getStaticProps({
   return {
     props: {
       page,
+      targeting,
     },
     // Next.js will attempt to re-generate the page:
     // - When a request comes in
     // - At most once every 5 seconds
-    revalidate: 5,
+    revalidate: 15,
   }
 }
 
 export async function getStaticPaths() {
-  const pages = await builder.getAll('page', {
-    options: { noTargeting: true },
-    apiKey: builderConfig.apiKey,
-  })
-
   return {
-    // new set ensure unique urls, as there could be multiple pages on the same url, variations will be handled by middlewar
-    paths: [...new Set(pages.map((page) => `${page.data?.url}`))],
+    paths: [],
     fallback: true,
   }
 }
 
 export default function Path({
   page,
+  targeting,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter()
 
@@ -73,6 +70,7 @@ export default function Path({
   }
 
   const { title, description, image } = page?.data! || {}
+
   return (
     <>
       <Head>
@@ -95,7 +93,12 @@ export default function Path({
           ],
         }}
       />
-      <BuilderComponent renderLink={Link} model="page" content={page} />
+      <BuilderComponent
+        context={{ targeting }}
+        renderLink={Link}
+        model="page"
+        content={page}
+      />
     </>
   )
 }

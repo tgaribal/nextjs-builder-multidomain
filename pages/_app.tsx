@@ -10,12 +10,14 @@ import {
 // only needed for context menu styling
 import '@szhsin/react-menu/dist/index.css'
 import '@szhsin/react-menu/dist/transitions/slide.css'
-import '@builder.io/widgets';
-
+import '@builder.io/widgets'
+import { useEffect } from 'react'
 builder.init(builderConfig.apiKey)
-initUserAttributes(Cookies.get())
 
 export default function MyApp({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    initUserAttributes(pageProps.targeting || Cookies.get())
+  }, [])
   return (
     <>
       <Component {...pageProps} />

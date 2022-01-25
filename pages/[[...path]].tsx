@@ -1,5 +1,3 @@
-
-   
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
